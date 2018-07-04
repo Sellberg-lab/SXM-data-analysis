@@ -8,23 +8,28 @@ Alexander Woxström, 2018-06-26
 #==============================================================================
 """
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+from skimage import data
+#from skimage.filters import threshold_otsu
+#from skimage.segmentation import clear_border
+from skimage.measure import label, regionprops
+from skimage.morphology import closing, square
+from skimage.color import label2rgb
+from cross2Ellipse import cross2Ellipse
+
+from PIL import Image
 
 """
 ----------------------------------Import images--------------------------------
 """
-#File1 och 2 variablerna har hela pathwayn till bilderna
-#Använd pil för  att lagra tiff filen som t2
-
-
-#Skapa variabel crossImg som är bilden som en två dim numpyarray med numeriska
-#värden från 0-255. Uppdelad så att 
+crossImg = ""
 """
 ---------------------------------Use cross2Ellipse-----------------------------
 """
-from cross2Ellipse import cross2Ellipse
 a = cross2Ellipse(crossImg)
-N = 
+
 
 
 """

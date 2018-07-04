@@ -1,40 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from crossInfo import crossInfo
+from skimage import data
+#from skimage.filters import threshold_otsu
+#from skimage.segmentation import clear_border
+from skimage.measure import label, regionprops
+from skimage.morphology import closing, square
+from skimage.color import label2rgb
+
+from PIL import Image
+
 def cross2Ellipse(crossImage):
     """
     cross2Ellipse takes an image with black crosses and interprets them as the 
-    dimention of elliptical particles. A mask image containing the elliptical 
-    particles is returned, together with the lengths, width and positions of the 
-    ellipses.
+    dimention of elliptical particles. A list containing the lengths, width and positions of the 
+    ellipses is returned.
     """
-    #Binarize image. Set variable lim = 0.1 * 255. Så att alla värden blir svarta.
-    #Skapa variabel binImg > lim. Denna listan kommer göra om alla värden större
-    #än 25 till svart och mindre till vitt. 
-    #Lagrar binImg 
     
-    #Hitta alla kors, deras regioner. (Matlab regionprops)
-    #Ska ge lista med alla regioner. Döp listan till stats. Regionerna ska 
-    #innehålla bild och 
-    #boundingbox kordinater. Tex: [[image, boundingbox],[image, boundingbox]]
-    stats = []
-    stats.append([skimage.measure.regionprops(crossImage)])
+    im = Image.open(crossImage)    
+    image = np.array(im.getdata()).reshape(im.size[1], im.size[0], 4)[:,:,3]
     
+    threshold = 0.1
+    cleared = image > threshold*image.max()
     
-    #Kolla längden på listan för antalet kors
-    #Skapa tomma arrays/listor för alla längder, brädder, xPositions, yPositions
-    #och vinklar som 
-    #sen kommer returnas. Dessa kommer sedan fyllas i forloopen.
+    # label image regions
+    label_image = label(cleared)
+    #image_label_overlay = label2rgb(label_image, image=image)
+    #fig, ax = plt.subplots(figsize=(10, 6))
+    #ax.imshow(image_label_overlay, interpolation='nearest')
+    #plt.colorbar()
+    
+    infoReg = []
+    numTimes = 0
+    for region in regionprops(label_image):
+        #plt.imshow(region.image)
+        # take regions with large enough areas
+        if region.area >= 10:
+            # draw rectangle around segmented coins
+            minr, minc, maxr, maxc = region.bbox
+#            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+#                                      fill=False, edgecolor='red', linewidth=2)
+#            ax.add_patch(rect)
+            numTimes +=1
+            if numTimes%50 == 0:
+                print(numTimes)
+            infoReg.append(crossInfo(region))
+            
+    N = len(infoReg)
+    return infoReg
+   # return [lengths, widths, xPositions, yPositions, angles]
 
-    #forloopa alla kros och lägg till datan i listorna. I forloopen så:
-        #k, antalet loops, går från 1-> len(stats)
-        #image = stats[k].image
-        #box = stats[k].box
-        #image analyseras med hjälp av funktionen CrossInfo(image). 
-        #xPos. Det man får tillbaka från CrossInfo är xPos inom den beskärda 
-        #bilden.  
-        #För att få xPos för hela bilden måste boundingboxens x-värde läggas till.
-        #Detta värdet läggs till i listan för xPositioner. 
-        #Samma gäller yPos.
-        #Appenda även vinkeln till angles, längden till lengths, bredden till 
-        #widths etc så att man för varje värde på k appendar värdena till listorna
-        #som returnas.
+#im = imread("/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif", as_gray=False)
+infoReg = cross2Ellipse("/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif")
 
-    return [mask, lengths, widths, xPositions, yPositions, angles]
