@@ -36,21 +36,26 @@ def cross2Ellipse(crossImage):
     for region in regionprops(label_image):
         #plt.imshow(region.image)
         # take regions with large enough areas
+        
         if region.area >= 10:
             # draw rectangle around segmented coins
-            minr, minc, maxr, maxc = region.bbox
+            #minr, minc, maxr, maxc = region.bbox
 #            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
 #                                      fill=False, edgecolor='red', linewidth=2)
 #            ax.add_patch(rect)
+            #if numTimes == 1:
+               #plt.imshow(region.image)
+               #break
             numTimes +=1
-            if numTimes%50 == 0:
-                print(numTimes)
+            if numTimes%100 == 0:
+                print(numTimes, "/", label_image.max())
             infoReg.append(crossInfo(region))
+            
             
     N = len(infoReg)
     return infoReg
    # return [lengths, widths, xPositions, yPositions, angles]
 
 #im = imread("/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif", as_gray=False)
-infoReg = cross2Ellipse("/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif")
+#infoReg = cross2Ellipse("/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif")
 
