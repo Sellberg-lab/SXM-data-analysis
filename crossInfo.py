@@ -19,11 +19,11 @@ def crossInfo(region):
     crossInfo takes the logical image of a cross and analyzes its length, width,
     angle and position in the xy-plane. 
     """
-    image = region.image
-    scale= 2.5
+    orgImage = region.image
+    scale = 2.5
     #plt.imshow(image)
     #print(image.shape)
-    image = rescale(image, scale, multichannel=False)
+    image = rescale(orgImage, scale, multichannel=False)
     #print(image.shape)
     #img = image[:,:,0]
     lim = 0.6*image.max()
@@ -57,10 +57,12 @@ def crossInfo(region):
     
     minr, minc, maxr, maxc = region.bbox
     #print(minr, minc, maxr, maxc)
-    xMid = image.shape[1]/2
-    yMid = image.shape[0]/2
-    xPos = xMid + minr
-    yPos = yMid + minc
+    xMid = orgImage.shape[1]/2
+    yMid = orgImage.shape[0]/2
+    #xPos = xMid + minr
+    xPos = xMid + minc
+    #yPos = yMid + minc
+    yPos = yMid + minr
     middle = [xMid, yMid]
     pos = [xPos, yPos]
     #ax2.set_title("Radon transform\n(RadonIm)")

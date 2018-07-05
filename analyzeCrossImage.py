@@ -27,8 +27,9 @@ from PIL import Image
 ---------------------------------Use cross2Ellipse-----------------------------
 """
 #fname = input("Enter filename and position :")
-fname = "/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif"
+fname = "/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20171025_amoeba5-01.tif"
 iname = fname[:-7] + ".jpg"
+pname = fname[:-7] + "-analyzed.png"
 i = Image.open(iname)
 infoReg = cross2Ellipse(fname)
 
@@ -82,19 +83,22 @@ for virus in viruses:
 vPoints = np.array(vPositions)
 allPoints = np.array(allPositions)
 
+plt.figure(figsize=(6,6), dpi=100)
+#plt.imshow(i.transpose(Image.TRANSPOSE))
 plt.imshow(i)
 aAmoeba = ConvexHull(allPoints)
-#plt.plot(allPoints[:,0], allPoints[:,1], 'o')
-#plt.axis([2049,0,0,2049])
+plt.plot(allPoints[:,0], allPoints[:,1], '.')
 for simplex in aAmoeba.simplices:
     plt.plot(allPoints[simplex, 0], allPoints[simplex, 1], 'k-')
 
 hull = ConvexHull(vPoints)
-plt.plot(vPoints[:,0], vPoints[:,1], 'ro')
-#plt.axis([2049,0,0,2049])
+plt.plot(vPoints[:,0], vPoints[:,1], 'r.')
 for simplex in hull.simplices:
     plt.plot(vPoints[simplex, 0], vPoints[simplex, 1], 'r-')
 
+#plt.savefig(ename, format='eps')
+plt.savefig(pname)
+print('Saved png to: %s' % pname)
 plt.show()
 
 aPx = aAmoeba.volume
