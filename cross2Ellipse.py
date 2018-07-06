@@ -17,35 +17,24 @@ def cross2Ellipse(crossImage):
     dimention of elliptical particles. A list containing the lengths, width and positions of the 
     ellipses is returned.
     """
-    
+    #Open image
     im = Image.open(crossImage)    
     image = np.array(im.getdata()).reshape(im.size[1], im.size[0], 4)[:,:,3]
     
+    #Set threshold
     threshold = 0.1
     cleared = image > threshold*image.max()
     
     # label image regions
     label_image = label(cleared)
-    #image_label_overlay = label2rgb(label_image, image=image)
-    #fig, ax = plt.subplots(figsize=(10, 6))
-    #ax.imshow(image_label_overlay, interpolation='nearest')
-    #plt.colorbar()
     
+    #Create list for information about regions.
     infoReg = []
     numTimes = 0
+    
+    #Use regionprops and extract data about each region, append info to infoReg
     for region in regionprops(label_image):
-        #plt.imshow(region.image)
-        # take regions with large enough areas
-        
         if region.area >= 10:
-            # draw rectangle around segmented coins
-            #minr, minc, maxr, maxc = region.bbox
-#            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-#                                      fill=False, edgecolor='red', linewidth=2)
-#            ax.add_patch(rect)
-            #if numTimes == 1:
-               #plt.imshow(region.image)
-               #break
             numTimes +=1
             if numTimes == 1:
                 print(numTimes, "/", label_image.max())
@@ -53,11 +42,5 @@ def cross2Ellipse(crossImage):
                 print(numTimes, "/", label_image.max())
             infoReg.append(crossInfo(region))
             
-            
-    N = len(infoReg)
+    #Return infoReg = [lengths, widths, xPositions, yPositions, angles]        
     return infoReg
-   # return [lengths, widths, xPositions, yPositions, angles]
-
-#im = imread("/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif", as_gray=False)
-#infoReg = cross2Ellipse("/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/20180110_amoeba22-01.tif")
-

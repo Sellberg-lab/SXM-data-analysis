@@ -14,24 +14,8 @@ from PIL import Image
 
 infTimes = [0, 6, 12, 18, 24] # in hours, B4 (healthy) is set to -12 h
 pxSize = 19.3 #19.3nm/px
-"""
-lengthsB4 = []
-concB4 = []
-nVirusB4 = []
-fname1 = "/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/" + "20171115_amoeba2-01.tif"
-#fname2 = "/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/" + "20171115_amoeba4-01.tif"
-#fname3 = "/Users/alexanderwoxstrom/Forskningsprojektet Rays/sofie+alex/cells/" + "20171115_amoeba5-01.tif"
-fnamesB4 = [fname1]#,fname2,fname3]
-for cell in fnamesB4:
-     [nVirus, conc, allLengths] = analyzeCrossImage(cell)
-     lengthsB4.append(allLengths)
-     concB4.append(conc)
-     nVirusB4.append(nVirus)
-lengthsB4 = np.array(lengthsB4)
-concB4 = np.array(concB4)
-nVirusB4 = np.array(nVirusB4)
-"""
 
+#Run analyzeCrossImage on all images at T0 and collect the data needed for analysis
 print("Starting to analyze T0")     
 lengthsT0 = []
 concT0 = []
@@ -51,6 +35,7 @@ lengthsT0 = np.array(lengthsT0)
 concT0 = np.array(concT0)
 nVirusT0 = np.array(nVirusT0)
 
+#Run analyzeCrossImage on all images at T6 and collect the data needed for analysis
 print("Starting to analyze T6")     
 lengthsT6 = []
 concT6 = []
@@ -70,6 +55,7 @@ lengthsT6 = np.array(lengthsT6)
 concT6 = np.array(concT6)
 nVirusT6 = np.array(nVirusT6)
 
+#Run analyzeCrossImage on all images at T12 and collect the data needed for analysis
 print("Starting to analyze T12")     
 lengthsT12 = []
 concT12 = []
@@ -88,6 +74,7 @@ lengthsT12 = np.array(lengthsT12)
 concT12 = np.array(concT12)
 nVirusT12 = np.array(nVirusT12)
 
+#Run analyzeCrossImage on all images at T18 and collect the data needed for analysis
 print("Starting to analyze T18")     
 lengthsT18 = []
 concT18 = []
@@ -107,6 +94,7 @@ lengthsT18 = np.array(lengthsT18)
 concT18 = np.array(concT18)
 nVirusT18 = np.array(nVirusT18)
 
+#Run analyzeCrossImage on all images at T24 and collect the data needed for analysis
 print("Starting to analyze T24")     
 lengthsT24 = []
 concT24 = []
@@ -126,23 +114,21 @@ nVirusT24 = np.array(nVirusT24)
 
 print("Analysis Done!")
 
-#nVirusVsTimeMean = [nVirusB4.mean(), nVirusT0.mean(), nVirusT12.mean(), nVirusT24.mean()]
-#nVirusVsTimeStd = [nVirusB4.std(), nVirusT0.std(), nVirusT12.std(), nVirusT24.std()]
 
-#concVsTimeMean = [concB4.mean(), concT0.mean(), concT12.mean(), concT24.mean()]
-#concVsTimeStd = [concB4.std(), concT0.std(), concT12.std(), concT24.std()]
-
-
+#Create the data that needs to be plotted 
+#nVirus plots:
+nVirusVsTimeMeanPlusStd =  [nVirusT0.mean()+nVirusT0.std(),nVirusT6.mean()+nVirusT6.std(), nVirusT12.mean()+nVirusT12.std(),nVirusT18.mean()+nVirusT18.std(), nVirusT24.mean()+nVirusT24.std()]
+nVirusVsTimeMeanMinusStd = [nVirusT0.mean()-nVirusT0.std(),nVirusT6.mean()-nVirusT6.std(), nVirusT12.mean()-nVirusT12.std(),nVirusT18.mean()-nVirusT18.std(), nVirusT24.mean()-nVirusT24.std()]
 nVirusVsTimeMean = [nVirusT0.mean(),nVirusT6.mean(), nVirusT12.mean(),nVirusT18.mean(), nVirusT24.mean()]
 nVirusVsTimeStd = [nVirusT0.std(), nVirusT6.std(), nVirusT12.std(), nVirusT18.std(), nVirusT24.std()]
 
+#conc plots:
+concVsTimeMeanPlusStd =  [concT0.mean()+concT0.std(),concT6.mean()+concT6.std(), concT12.mean()+concT12.std(),concT18.mean()+concT18.std(), concT24.mean()+concT24.std()]
+concVsTimeMeanMinusStd =  [concT0.mean()-concT0.std(),concT6.mean()-concT6.std(), concT12.mean()-concT12.std(),concT18.mean()-concT18.std(), concT24.mean()-concT24.std()]
 concVsTimeMean = [concT0.mean(), concT6.mean(), concT12.mean(), concT18.mean(), concT24.mean()]
 concVsTimeStd = [concT0.std(), concT6.std(), concT12.std(), concT18.std(), concT24.std()]
 
-# calculate hist - B4
-#n = 100
-#lB4 = np.concatenate(lengthsB4)
-#dL = (lB4.max() - lB4.min())/n
+#Calculate Hist - T0
 lMin = 50 # nm
 lMax = 1650 # nm
 dL = 100 # nm
@@ -151,11 +137,49 @@ hist_bins = np.linspace(lMin, lMax, num=np.int((lMax - lMin)/dL + 1))
 hist, hist_bins = np.histogram(np.concatenate(lengthsT0)*pxSize, bins=hist_bins)
 hist_bins_center = np.array([(hist_bins[i] + hist_bins[i+1])/2 for i in range(len(hist_bins) - 1)])
 plt.bar(hist_bins_center, hist, 0.8*dL)
+plt.xlabel('Different sizes (nm)')
+plt.ylabel('Number of particles')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT0')
 plt.show()
 
-plt.plot(infTimes, concVsTimeMean,"-xr")
-plt.legend(["Concentration of viruses per square μm at different times"])
+#Calculate Hist - T12
+lMin = 50 # nm
+lMax = 1650 # nm
+dL = 100 # nm
 plt.show()
-plt.plot(infTimes, nVirusVsTimeMean,"-xk")
-plt.legend(["Number of viruses per square μm at different times"])
+hist_bins = np.linspace(lMin, lMax, num=np.int((lMax - lMin)/dL + 1))
+hist, hist_bins = np.histogram(np.concatenate(lengthsT12)*pxSize, bins=hist_bins)
+hist_bins_center = np.array([(hist_bins[i] + hist_bins[i+1])/2 for i in range(len(hist_bins) - 1)])
+plt.bar(hist_bins_center, hist, 0.8*dL)
+plt.xlabel('Different sizes (nm)')
+plt.ylabel('Number of particles')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT12')
+plt.show()
+
+#Calculate Hist - T24
+lMin = 50 # nm
+lMax = 1650 # nm
+dL = 100 # nm
+plt.show()
+hist_bins = np.linspace(lMin, lMax, num=np.int((lMax - lMin)/dL + 1))
+hist, hist_bins = np.histogram(np.concatenate(lengthsT24)*pxSize, bins=hist_bins)
+hist_bins_center = np.array([(hist_bins[i] + hist_bins[i+1])/2 for i in range(len(hist_bins) - 1)])
+plt.bar(hist_bins_center, hist, 0.8*dL)
+plt.xlabel('Different sizes (nm)')
+plt.ylabel('Number of particles')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT24')
+plt.show()
+
+#Plot ConcVsTimeMean with standarddeviation added, subtracted and without
+plt.errorbar(infTimes, concVsTimeMean, concVsTimeStd, 0,"-ob", capsize=5)
+plt.xlabel('Time (h)')
+plt.ylabel('Concentration of viruses (virus$/μm^2$)')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/ConcVsTime')
+plt.show()
+
+#Plot nVirus with standarddeviation added, subtracted and without
+plt.errorbar(infTimes, nVirusVsTimeMean, nVirusVsTimeStd, 0,"-ok", capsize=5)
+plt.xlabel('Time (h)')
+plt.ylabel('Number of viruses per cell')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/nVirusVsTime')
 plt.show()
