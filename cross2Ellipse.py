@@ -47,7 +47,9 @@ def cross2Ellipse(crossImage):
                #plt.imshow(region.image)
                #break
             numTimes +=1
-            if numTimes%100 == 0:
+            if numTimes == 1:
+                print(numTimes, "/", label_image.max())
+            if numTimes%200 == 0:
                 print(numTimes, "/", label_image.max())
             infoReg.append(crossInfo(region))
             
