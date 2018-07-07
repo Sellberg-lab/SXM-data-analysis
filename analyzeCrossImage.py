@@ -35,7 +35,7 @@ def analyzeCrossImage(fname):
     minLength = 900/pxSize
     maxLength = 1800/pxSize
     #Ellipticity = length/width
-    minEllipticity = 1.6 
+    minEllipticity = 1.4 
 
     #Create lists for all information
     vLengths = []
@@ -75,6 +75,7 @@ def analyzeCrossImage(fname):
     
     #Create a ConvexHull which can be used to calculate area
     aAmoeba = ConvexHull(allPoints)
+    nVirus = len(viruses)
     plt.plot(allPoints[:,0], allPoints[:,1], '.')
     for simplex in aAmoeba.simplices:
         plt.plot(allPoints[simplex, 0], allPoints[simplex, 1], 'k-')
