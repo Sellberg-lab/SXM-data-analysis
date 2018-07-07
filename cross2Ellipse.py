@@ -44,3 +44,4 @@ def cross2Ellipse(crossImage):
             
     #Return infoReg = [lengths, widths, xPositions, yPositions, angles]        
     return infoReg
+ 

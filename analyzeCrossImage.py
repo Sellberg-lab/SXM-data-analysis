@@ -95,4 +95,4 @@ def analyzeCrossImage(fname):
     #Return values
     nVirus = len(viruses)
     conc = nVirus/aMikroM
-    return nVirus, conc, allLengths
+    return nVirus, conc, allLengths 

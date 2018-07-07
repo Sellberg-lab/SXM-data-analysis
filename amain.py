@@ -183,3 +183,4 @@ plt.xlabel('Time (h)')
 plt.ylabel('Number of viruses per cell')
 plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/nVirusVsTime')
 plt.show()
+ 
