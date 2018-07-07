@@ -139,7 +139,7 @@ hist_bins_center = np.array([(hist_bins[i] + hist_bins[i+1])/2 for i in range(le
 plt.bar(hist_bins_center, hist, 0.8*dL)
 plt.xlabel('Different sizes (nm)')
 plt.ylabel('Number of particles')
-#plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT0')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT0')
 plt.show()
 
 #Calculate Hist - T12
@@ -153,7 +153,7 @@ hist_bins_center = np.array([(hist_bins[i] + hist_bins[i+1])/2 for i in range(le
 plt.bar(hist_bins_center, hist, 0.8*dL)
 plt.xlabel('Different sizes (nm)')
 plt.ylabel('Number of particles')
-#plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT12')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT12')
 plt.show()
 
 #Calculate Hist - T24
@@ -167,19 +167,19 @@ hist_bins_center = np.array([(hist_bins[i] + hist_bins[i+1])/2 for i in range(le
 plt.bar(hist_bins_center, hist, 0.8*dL)
 plt.xlabel('Different sizes (nm)')
 plt.ylabel('Number of particles')
-#plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT24')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/histT24')
 plt.show()
 
 #Plot ConcVsTimeMean with standarddeviation added, subtracted and without
 plt.errorbar(infTimes, concVsTimeMean, concVsTimeStd, 0,"-ob", capsize=5)
 plt.xlabel('Time (h)')
 plt.ylabel('Concentration of viruses (virus$/μm^2$)')
-#plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/ConcVsTime')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/ConcVsTime')
 plt.show()
 
 #Plot nVirus with standarddeviation added, subtracted and without
 plt.errorbar(infTimes, nVirusVsTimeMean, nVirusVsTimeStd, 0,"-ok", capsize=5)
 plt.xlabel('Time (h)')
 plt.ylabel('Number of viruses per cell')
-#plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/nVirusVsTime')
+plt.savefig('/Users/alexanderwoxstrom/Forskningsprojektet Rays/alex programmering/Plots/nVirusVsTime')
 plt.show()
