@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from scipy.spatial import ConvexHull
 from skimage import data
-#from skimage.filters import threshold_otsu
-#from skimage.segmentation import clear_border
 from skimage.measure import label, regionprops
 from skimage.morphology import closing, square
 from skimage.color import label2rgb
@@ -12,9 +10,6 @@ from cross2Ellipse import cross2Ellipse
 
 from PIL import Image
 
-"""
----------------------------------Use cross2Ellipse-----------------------------
-"""
 def analyzeCrossImage(fname):
     """
     Take a tif file with many crosses representing structures and returns number of viruses, conc and lengths 
@@ -32,10 +27,10 @@ def analyzeCrossImage(fname):
     
     #Define what parameters a virus is categorized by
     #Length in nm/(nm/px) = px
-    minLength = 900/pxSize
-    maxLength = 1800/pxSize
+    minLength = 700/pxSize
+    maxLength = 1300/pxSize
     #Ellipticity = length/width
-    minEllipticity = 1.4 
+    minEllipticity = 1.6 
 
     #Create lists for all information
     vLengths = []
@@ -95,4 +90,4 @@ def analyzeCrossImage(fname):
     #Return values
     nVirus = len(viruses)
     conc = nVirus/aMikroM
-    return nVirus, conc, allLengths 
+    return nVirus, conc, allLengths, aMikroM 
