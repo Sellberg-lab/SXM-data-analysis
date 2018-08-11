@@ -172,16 +172,16 @@ if __name__ == "__main__":
         _reader = csv.DictReader(f, delimiter='\t')
         fieldNames = _reader.fieldnames
         reader = [r for r in _reader]
-        all_images = [int(row["ImageNr"]) for row in reader]
-        all_types = [row["ImageType"].strip() for row in reader]
-        all_files = [row["FileName"].strip() for row in reader]
-        all_infection_times = [int(row["InfectionTime"]) for row in reader]
-        type_images = [int(row["ImageNr"]) for row in reader if row["ImageType"] in args.image_type.split(",")]
-        analyzed_images = [int(row["ImageNr"]) for row in reader if int(row["VirusesTot"]) >= 0]
-        if args.infection_time is not None:
-            infection_time_images = [int(row["ImageNr"]) for row in reader if int(row["InfectionTime"]) == args.infection_time]
-        else:
-            infection_time_images = all_images
+    all_images = [int(row["ImageNr"]) for row in reader]
+    all_types = [row["ImageType"].strip() for row in reader]
+    all_files = [row["FileName"].strip() for row in reader]
+    all_infection_times = [int(row["InfectionTime"]) for row in reader]
+    type_images = [int(row["ImageNr"]) for row in reader if row["ImageType"] in args.image_type.split(",")]
+    analyzed_images = [int(row["ImageNr"]) for row in reader if int(row["VirusesTot"]) >= 0]
+    if args.infection_time is not None:
+        infection_time_images = [int(row["ImageNr"]) for row in reader if int(row["InfectionTime"]) == args.infection_time]
+    else:
+        infection_time_images = all_images
     
     # Construct list of images that shall be processed
     if args.image_number == "all":
@@ -305,6 +305,32 @@ if __name__ == "__main__":
     # TODO: Plot histograms
     
     # Save data
-    if save_text:
-        pass #TODO
-        
+    if save_text and len(images) > 0:
+        # Overwrite existing csv with updated table (reader dict)
+        print "writing parameters to: %s" % filename_csv
+        with open(filename_csv, "w") as f:
+            _writer = csv.DictWriter(f, fieldNames, delimiter='\t')
+            assert (len(sorters) == 2)
+            assert (sorters[0] == 'gunnar')
+            assert (sorters[1] == 'komang')
+            # Make data into 2D list
+            #data = [images, imageTypes, imageFiles, infectionTimes, np.array(allLengths)[:,0].shape[0], np.array(vLengths)[:,0].shape[0], np.array(aMicroM)[:,0], np.array(allLengths)[:,1].shape[0], np.array(vLengths)[:,1].shape[0], np.array(aMicroM)[:,1], [-1 for i in images], np.array(vLengthsTot).shape # BUG: shape[0] doesn't work as intended
+            #data = [images, imageTypes, imageFiles, infectionTimes, [l[0].shape[0] for l in allLengths], [v[0].shape[0] for v in vLengths], [a[0] for a in aMicroM], [l[1].shape[0] for l in allLengths], [v[1].shape[0] for v in vLengths], [a[1] for a in aMicroM], [-1 for i in images], [v.shape[0] for v in vLengthsTot]] # JAS: this should work
+            data = [images, imageTypes, imageFiles, infectionTimes]
+            for s in range(len(sorters)): # JAS: this is prettier
+                data += [[l[s].shape[0] for l in allLengths]]
+                data += [[v[s].shape[0] for v in vLengths]]
+                data += [[a[s].item() for a in aMicroM]] # JAS: item() gets rid of np.array(scalar), why is it needed?
+            data += [[-1 for i in images]]
+            data += [[v.shape[0] for v in vLengthsTot]]
+            #print data
+            #print aMicroM, aMicroM[0], aMicroM[0][0]
+            # Update reader dict
+            for i in range(len(images)):
+                #print i
+                row = {fieldNames[j]: data[j][i] for j in range(len(fieldNames))}
+                reader[row['ImageNr']-1] = row
+            _writer.writeheader()
+            _writer.writerows(reader)
+        print "%d rows in %s were successfully updated!" % (len(images), filename_csv)
+    
