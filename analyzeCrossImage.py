@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from scipy.spatial import ConvexHull
@@ -14,8 +15,15 @@ def analyzeCrossImage(fname):
     """
     Take a tif file with many crosses representing structures and returns number of viruses, conc and lengths 
     """
-    iname = fname[:-7] + ".jpg"
-    pname = fname[:-7] + "-analyzed.png"
+    if "komang" in fname:
+        iname = fname[:-7] + ".jpg"
+        pname = fname[:-7] + "-analyzed.png"
+    elif "gunnar" in fname:
+        iname = fname[:-11] + ".jpg"
+        pname = fname[:-11] + "-analyzed.png"
+    else:
+        print("Unknown sorter (Gunnar or Komang), aborting..")
+        sys.exit(-1)
     i = Image.open(iname)
     
     #Run cross2Ellipse
@@ -83,11 +91,11 @@ def analyzeCrossImage(fname):
     plt.savefig(pname)
     print('Saved png to: %s' % pname)
     
-    #Define area in px and sq μm    
+    #Define area in px and sq um
     aPx = aAmoeba.volume
-    aMikroM = aPx *pxSqrd/1000000 #Scales 19.3 each axis. Turns nm^2 to μm^2
+    aMikroM = aPx *pxSqrd/1000000 #Scales 19.3 each axis. Turns nm^2 to um^2
     
     #Return values
     nVirus = len(viruses)
     conc = nVirus/aMikroM
-    return nVirus, conc, allLengths, aMikroM 
+    return nVirus, conc, allLengths, aMikroM

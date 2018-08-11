@@ -25,13 +25,14 @@ def crossInfo(region):
     
     #Set scale, OBS: Exponentially slows program
     scale = 2.5
-    image = rescale(orgImage, scale, multichannel=False)
-   
+    #image = rescale(orgImage, scale, multichannel=False) # JAS: multichannel keyword does not exist in my version of skimage (0.13)
+    image = rescale(orgImage, scale)
+    
     #Binarize image
     lim = 0.6*image.max()
     img = image[:,:]
     image = (img > lim).astype(np.int)
- 
+    
     #Begin Radon Transform and define parameters for it
     theta = np.linspace(0., 180., max(image.shape), endpoint=False)
     radIm = radon(image, theta=theta, circle=False)
@@ -64,5 +65,3 @@ def crossInfo(region):
     
     #Return values for region
     return [length, width, middle, pos, ang1]
-
- 
