@@ -91,11 +91,11 @@ def analyzeCrossImage(fname):
     plt.savefig(pname)
     print('Saved png to: %s' % pname)
     
-    #Define area in px and sq um
+    #Define area in px and sq um    
     aPx = aAmoeba.volume
     aMikroM = aPx *pxSqrd/1000000 #Scales 19.3 each axis. Turns nm^2 to um^2
     
     #Return values
     nVirus = len(viruses)
     conc = nVirus/aMikroM
-    return nVirus, conc, allLengths, aMikroM
+    return nVirus, conc, allLengths, aMikroM, allWidths, allPositions, vLengths, vWidths, vPositions

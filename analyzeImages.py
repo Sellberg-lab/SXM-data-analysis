@@ -39,6 +39,12 @@ def parse_cmdline_args():
                         help="sorters (in lowercase) who shall be processed (default: gunnar,komang)", type=str, default="gunnar,komang")
     parser.add_argument('-t', '--infection-time', metavar='infection_time', required=False,
                         help="only process single infection time (default: off)", type=int, default=None)
+    parser.add_argument('-m', '--min-length', metavar='min_length', required=False,
+                        help="minimum length for virus classification (default: 700 nm)", type=float, default=700.0)
+    parser.add_argument('-x', '--max-length', metavar='max_length', required=False,
+                        help="maximum length for virus classification (default: 1500 nm)", type=float, default=1500.0)
+    parser.add_argument('-e', '--ellipticity', metavar='ellipticity', required=False,
+                        help="minimum ellipticity for virus classification (default: 1.5)", type=float, default=1.5)
     parser.add_argument('-l', '--output-level', metavar='output_level',
                         help="output level defines how much data per event will be stored (default: 2; 0: no output (\"dry-image\"), 1: only scalar output (Number of particles, number of viruses, etc.), 2: scalar output and images, 3: scalar output, images and HDF5 file of processed data)", type=int, default=2)
     parser.add_argument('-r', '--re-process', default=0, metavar='re_process',
@@ -53,7 +59,11 @@ def parse_cmdline_args():
         
     return parser.parse_args()
 
-def analyzeCrossImage(fname, output_dir, save_png=True):
+# Define pixel constants needed for conversion 
+pxSize = 19.3 #19.3nm/px
+pxSqrd = 19.3**2 #nm^2 per pixel
+
+def analyzeCrossImage(fname, output_dir, save_png=True, min_length=650, max_length=1500, min_ellipticity=1.3):
     """
     Take a tif file with many crosses representing structures and returns number of particles, viruses, conc and lengths
     """
@@ -70,21 +80,23 @@ def analyzeCrossImage(fname, output_dir, save_png=True):
         sys.exit(-1)
     i = Image.open(iname)
     
-    #Run cross2Ellipse
+    # Run cross2Ellipse
     infoReg = cross2Ellipse.cross2Ellipse(fname)
-    
-    #Define pixel constants needed for conversion 
-    pxSize = 19.3 #19.3nm/px
-    pxSqrd = 19.3**2 #nm^2 per pixel
-    
-    #Define what parameters a virus is categorized by
+        
+    # Define what parameters a virus is categorized by
     #Length in nm/(nm/px) = px
-    minLength = 700/pxSize
-    maxLength = 1300/pxSize
-    #Ellipticity = length/width
-    minEllipticity = 1.6 
-
-    #Create lists for all information
+    #minLength = 700/pxSize
+    #minLength = 650/pxSize
+    minLength = min_length/pxSize
+    #maxLength = 1300/pxSize
+    #maxLength = 1500/pxSize
+    maxLength = max_length/pxSize
+    # Ellipticity = length/width
+    #minEllipticity = 1.6
+    #minEllipticity = 1.3
+    minEllipticity = min_ellipticity
+    
+    # Create lists for all information
     vLengths = []
     allLengths = []
     vWidths = []
@@ -93,7 +105,7 @@ def analyzeCrossImage(fname, output_dir, save_png=True):
     allMidPoints = []
     viruses = []
     
-    #Extract information from each region
+    # Extract information from each region
     for structure in infoReg:
         allPositions.append(structure[3])
         allMidPoints.append(structure[2])
@@ -107,7 +119,7 @@ def analyzeCrossImage(fname, output_dir, save_png=True):
                     vLengths.append(structure[0])
                     vWidths.append(structure[1])
 
-    #Extract information about each virus
+    # Extract information about each virus
     vMidPoints = []
     vPositions = []
     for virus in viruses:
@@ -120,7 +132,7 @@ def analyzeCrossImage(fname, output_dir, save_png=True):
     plt.figure(figsize=(6,6), dpi=100)
     plt.imshow(i)
     
-    #Create a ConvexHull which can be used to calculate area
+    # Create a ConvexHull which can be used to calculate area
     aAmoeba = ConvexHull(allPoints)
     nVirus = len(viruses)
     plt.plot(allPoints[:,0], allPoints[:,1], '.')
@@ -138,12 +150,13 @@ def analyzeCrossImage(fname, output_dir, save_png=True):
             print("Created directory: %s" % pdir)
         plt.savefig(pdir + pname)
         print('Saved png to: %s' % pname)
+    plt.close()
     
-    #Define area in px and sq um    
+    # Define area in px and sq um    
     aPx = aAmoeba.volume
-    aMicroM = aPx*pxSqrd/1000000 #Scales 19.3 each axis. Turns nm^2 to um^2
+    aMicroM = aPx*pxSqrd/1000000 # scales 19.3 nm each axis. Turns nm^2 to um^2
     
-    #Return values
+    # Return values
     nVirus = len(viruses)
     conc = nVirus/aMicroM
     return aMicroM, allLengths, allWidths, allPositions, vLengths, vWidths, vPositions
@@ -238,7 +251,7 @@ if __name__ == "__main__":
     vPositionsTot = [] # computed below
     counter = 0
 
-    print("Processing %d images.." % len(imageFiles))
+    print("Processing %d images for virus particles (%.0f < length < %.0f nm, ellipticity > %.1f).." % (len(imageFiles), args.min_length, args.max_length, args.ellipticity))
     if args.verbose:
         print fieldNames
     # Process single image
@@ -252,9 +265,8 @@ if __name__ == "__main__":
             else:
                 image_path = source_dir + '/%s/cells/' % s + f + '.tif'
             print("analyzing image: %s" % image_path)
-            data.append(analyzeCrossImage(image_path, args.output_directory, save_png=save_png))
+            data.append(analyzeCrossImage(image_path, args.output_directory, save_png=save_png, min_length=args.min_length, max_length=args.max_length, min_ellipticity=args.ellipticity))
         if args.verbose > 1:
-            #print data
             print len(data) # N_sorters
             print len(data[0]), len(data[1]) # N_data_types
             print len(data[0][6]), len(data[1][6]) # N_data_points
@@ -275,8 +287,8 @@ if __name__ == "__main__":
                     data[1][6][j][0] - data[1][4][j]/2 < data[0][6][i][0] and # 2_x - 2_dx < 1_x
                     data[1][6][j][1] - data[1][4][j]/2 < data[0][6][i][1]):   # 2_y - 2_dy < 1_y
                     vPosTemp.append((np.array(data[0][6][i]) + np.array(data[1][6][j]))/2.)
-                    vLenTemp.append((data[0][5][i] + data[1][5][j])/2.)
-                    vWidTemp.append((data[0][4][i] + data[1][4][j])/2.)
+                    vLenTemp.append((data[0][4][i] + data[1][4][j])/2.)
+                    vWidTemp.append((data[0][5][i] + data[1][5][j])/2.)
                     break # one virus particle is only allowed to overlap with one other virus particle
         if args.verbose:
             outTemp = [images[counter], imageTypes[counter], f, infectionTimes[counter]]
@@ -284,8 +296,6 @@ if __name__ == "__main__":
                 outTemp.append(len(data[s][1]))
                 outTemp.append(len(data[s][4]))
                 outTemp.append(data[s][0])
-            #print vPositionsTot
-            #print len(vPosTemp)
             outTemp.append(-1) # TODO: ParticlesTot
             outTemp.append(len(vPosTemp))
             print outTemp
@@ -302,9 +312,177 @@ if __name__ == "__main__":
         vPositionsTot.append(np.array(vPosTemp))
         counter += 1
     
-    # TODO: Plot histograms
+    # Save data for debugging
+    if not os.path.exists(args.output_directory):
+        os.mkdir(args.output_directory)
+        print("Created directory: %s" % args.output_directory)
+    oname = 'output_%s.npy' % args.image_number
+    np.save(args.output_directory + oname, [aMicroM, allLengths, allWidths, allPositions, vLengths, vWidths, vPositions, vLengthsTot, vWidthsTot, vPositionsTot])
+    print('Saved data to: %s' % oname)
     
-    # Save data
+    # Calculate histograms
+    histLengths = []
+    histWidths = []
+    histEllipticity = []
+    histEllipticityForLongLengths = []
+    histVirusLengths = []
+    histVirusWidths = []
+    histVirusEllipticity = []
+    histVirusEllipticityForLongLengths = []
+    histBinsLengths = np.arange(150, 1850, 100) # TODO: make into arguments
+    histBinsEllipticity = np.arange(0.95, 2.15, 0.1) # TODO: make into arguments
+    histBinsLengthsCenter = [(histBinsLengths[i] + histBinsLengths[i+1])/2 for i in range(len(histBinsLengths) - 1)]
+    histBinsEllipticityCenter = [(histBinsEllipticity[i] + histBinsEllipticity[i+1])/2 for i in range(len(histBinsEllipticity) - 1)]
+    for t in set(infectionTimes):
+        t_indices = np.where(np.array(infectionTimes) == t)
+        # vLengthsTot
+        vl = np.concatenate([d for d in np.array(vLengthsTot)[t_indices]])*pxSize
+        hist, hist_bins = np.histogram(vl, bins=histBinsLengths)
+        histVirusLengths.append(hist)
+        # vWidthsTot
+        vw = np.concatenate([d for d in np.array(vWidthsTot)[t_indices]])*pxSize
+        hist, hist_bins = np.histogram(vw, bins=histBinsLengths)
+        histVirusWidths.append(hist)
+        # vEllipticityTot
+        hist, hist_bins = np.histogram(vl/vw, bins=histBinsEllipticity)
+        histVirusEllipticity.append(hist)
+        # vEllipticityForLongLengthsTot
+        length_indices = np.where((vl > args.min_length) & (vl < args.max_length))
+        hist, hist_bins = np.histogram(vl[length_indices]/vw[length_indices], bins=histBinsEllipticity)
+        histVirusEllipticityForLongLengths.append(hist)
+        # temp arrays
+        histLengthsTemp = []
+        histWidthsTemp = []
+        histEllipticityTemp = []
+        histEllipticityForLongLengthsTemp = []
+        for s in range(len(sorters)):
+            #print "%d h: %d cells: %d particles for %s" % (t, (np.array(infectionTimes) == t).sum(), np.concatenate(np.array(allLengths)[t_indices][0][s], axis=0).shape[0], sorters[s])
+            #d = 100
+            #dI = (intensitySum.max() - intensitySum.min())/d
+            #hist_bins = np.arange(intensitySum.min() - 1, intensitySum.max() + 1) + 0.5
+            #hist_bins = np.linspace(intensitySum.min() - dI/2, intensitySum.max() + dI/2, num=d)
+            if args.verbose:
+                print np.array(allLengths).shape
+            # allLengths
+            #hist, hist_bins = np.histogram(np.array(allLengths)[t_indices][0][s]*pxSize, bins=histBinsLengths) # JAS: this line gives only first runt of the chosen infectionTime
+            al = np.concatenate([d[s] for d in np.array(allLengths)[t_indices]])*pxSize
+            hist, hist_bins = np.histogram(al, bins=histBinsLengths)
+            histLengthsTemp.append(hist)
+            # allWidths
+            #hist, hist_bins = np.histogram(np.array(allWidths)[t_indices][0][s]*pxSize, bins=histBinsLengths) # JAS: this line gives only first runt of the chosen infectionTime
+            aw = np.concatenate([d[s] for d in np.array(allWidths)[t_indices]])*pxSize
+            hist, hist_bins = np.histogram(aw, bins=histBinsLengths)
+            histWidthsTemp.append(hist)
+            # allEllipticity
+            hist, hist_bins = np.histogram(al/aw, bins=histBinsEllipticity)
+            histEllipticityTemp.append(hist)
+            # ellipticityForLongLengths
+            #length_indices = np.where(np.array((np.array(allLengths)[t_indices][0][s])*pxSize > args.min_length) & (np.array(np.array(allLengths)[t_indices][0][s])*pxSize < args.max_length))
+            length_indices = np.where((al > args.min_length) & (al < args.max_length))
+            hist, hist_bins = np.histogram(al[length_indices]/aw[length_indices], bins=histBinsEllipticity)
+            histEllipticityForLongLengthsTemp.append(hist)
+            print "%d h: %d cells: %d particles for %s (%d particles within size constraints, %d classified as viruses)" % (t, (np.array(infectionTimes) == t).sum(), al.shape[0], sorters[s], length_indices[0].shape[0], vl.shape[0])
+        histLengths.append(histLengthsTemp)
+        histWidths.append(histWidthsTemp)
+        histEllipticity.append(histEllipticityTemp)
+        histEllipticityForLongLengths.append(histEllipticityForLongLengthsTemp)
+    # Plot histograms
+    #plots = ['allLengths', 'allWidths', 'allEllipticity', 'ellipticityForLongLengths', 'virusEllipticity', 'virusLengths', 'virusWidths']
+    plots = ['allLengths', 'allWidths', 'allEllipticity', 'ellipticityForLongLengths']
+    colors = ['r','g','b','c','m','y','k']
+    #hist_data = {0: [histBinsLengthsCenter, histLengths], 1: [histBinsLengthsCenter, histWidths], 2: [histBinsEllipticityCenter, histEllipticity], 3: [histBinsEllipticityCenter, histEllipticityForLongLengths], 4: [histBinsEllipticityCenter, histVirusEllipticity], 5: [histBinsLengthsCenter, histVirusLengths], 6: [histBinsLengthsCenter, histVirusWidths]}
+    hist_data = {0: [histBinsLengthsCenter, histLengths, histVirusLengths], 1: [histBinsLengthsCenter, histWidths, histVirusWidths], 2: [histBinsEllipticityCenter, histEllipticity, histVirusEllipticity], 3: [histBinsEllipticityCenter, histEllipticityForLongLengths, histVirusEllipticityForLongLengths]}
+    for p in range(len(plots)):
+        if len(set(infectionTimes)) > 0:
+            counter = 0
+            for t in set(infectionTimes):
+                plt.figure(figsize=(6*len(sorters), 6), dpi=100)
+                plt.suptitle('%s - %d h' % (plots[p], t))
+                # sorters
+                for s in range(len(sorters)):
+                    ax = plt.subplot(101 + 10*len(sorters) + s) # 121, 122
+                    ax.set_title('%s' % sorters[s])
+                    plt.ylabel("Number of particles")
+                    bar_width = 0.8*(hist_data[p][0][1] - hist_data[p][0][0])
+                    ax.bar(hist_data[p][0], hist_data[p][1][counter][s], width=bar_width, color=colors[0], label='all particles')
+                    ax.bar(hist_data[p][0], hist_data[p][2][counter], width=bar_width, color=colors[1], label='common viruses')
+                    handles, labels = ax.get_legend_handles_labels()
+                    if p < 2 or p > 4:
+                        ax.legend(handles, labels, loc='upper right')
+                    else:
+                        ax.legend(handles, labels, loc='upper left')
+                # save
+                if save_png:
+                    pname = "/histogram-%s-%dh.png" % (plots[p], t)
+                    if not os.path.exists(args.output_directory):
+                        os.mkdir(args.output_directory)
+                        print("Created directory: %s" % args.output_directory)
+                    plt.savefig(args.output_directory + pname)
+                    print('Saved png to: %s' % pname)
+                plt.close()
+                counter += 1
+        else:
+            sys.exit(0)
+    
+    #for p in range(len(plots)):
+    #    plt.figure(figsize=(6+6*len(sorters), 6), dpi=100)
+    #    plt.suptitle('%s' % plots[p])
+    #    for s in range(len(sorters)):
+    #        ax = plt.subplot(111 + 10*len(sorters) + 2*s) # 131, 133, JAS: only works for 1 or 2 sorters
+    #        ax.set_title('%s' % sorters[s])
+    #        plt.ylabel("Number of particles")
+    #        bar_width = 0.8*(hist_data[p][0][1] - hist_data[p][0][0])
+    #        if len(set(infectionTimes)) > 0:
+    #            counter = 0
+    #            for t in set(infectionTimes):
+    #                ax.bar(hist_data[p][0], hist_data[p][1][counter][s], width=bar_width, color=colors[counter % len(colors)], label='%d h' % t)
+    #                counter += 1
+    #        #elif len(set(infectionTimes)) == 1:
+    #        #    #print "only one infection time: %d h" % infectionTimes[0]
+    #        #    ax.bar(hist_data[p][0], hist_data[p][1][s], width=bar_width, color=colors[0], label='%d h' % infectionTimes[0])
+    #        else:
+    #            sys.exit(0)
+    #        handles, labels = ax.get_legend_handles_labels()
+    #        if p < 2 or p > 4:
+    #            ax.legend(handles, labels, loc='upper right')
+    #        else:
+    #            ax.legend(handles, labels, loc='upper left')
+    #        
+    #        # bar plot is too slow with many bins and only yields semilogy
+    #        #plt.bar(np.arange(intensitySum.min(), intensitySum.max() + 1), hist, log=True)
+    #        #plt.loglog(np.arange(intensitySum.min(), intensitySum.max() + 1), hist, color='r', marker='_')
+    #        #plt.loglog(hist_bins_center, hist, color='r', marker='_')
+    #    
+    #    ax = plt.subplot(132)
+    #    ax.set_title('common viruses')
+    #    plt.ylabel("Number of particles")
+    #    bar_width = 0.8*(hist_data[p][0][1] - hist_data[p][0][0])
+    #    if len(set(infectionTimes)) > 0:
+    #        counter = 0
+    #        for t in set(infectionTimes):
+    #            ax.bar(hist_data[p][0], hist_data[p][2][counter], width=bar_width, color=colors[counter % len(colors)], label='%d h' % t)
+    #            counter += 1
+    #    #elif len(set(infectionTimes)) == 1:
+    #    #    #print "only one infection time: %d h" % infectionTimes[0]
+    #    #    ax.bar(hist_data[p][0], hist_data[p][2], width=bar_width, color=colors[0], label='%d h' % infectionTimes[0])
+    #    else:
+    #        sys.exit(0)
+    #    handles, labels = ax.get_legend_handles_labels()
+    #    if p < 2 or p > 4:
+    #        ax.legend(handles, labels, loc='upper right')
+    #    else:
+    #        ax.legend(handles, labels, loc='upper left')
+    #    
+    #    if save_png:
+    #        pname = "/histogram-%s.png" % plots[p]
+    #        if not os.path.exists(args.output_directory):
+    #            os.mkdir(args.output_directory)
+    #            print("Created directory: %s" % args.output_directory)
+    #        plt.savefig(args.output_directory + pname)
+    #        print('Saved png to: %s' % pname)
+    #    plt.close()
+    
+    # Save data (better to do for each loop for long runs)
     if save_text and len(images) > 0:
         # Overwrite existing csv with updated table (reader dict)
         print "writing parameters to: %s" % filename_csv
